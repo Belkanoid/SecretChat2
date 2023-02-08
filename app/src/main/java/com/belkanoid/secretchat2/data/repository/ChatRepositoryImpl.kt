@@ -96,7 +96,6 @@ class ChatRepositoryImpl @Inject constructor(
         }
 
     }
-
     override suspend fun getMessage(messageId: Long): Response<Message> {
         val token = sharedPreferences.getString(TOKEN)
         val privateKey = sharedPreferences.getString(PRIVATE_KEY)
@@ -111,7 +110,6 @@ class ChatRepositoryImpl @Inject constructor(
             Response.Error("Could not get Message: $messageId")
         }
     }
-
     override suspend fun getQueue(userId: Long): Response<List<Queue>> {
         val token = sharedPreferences.getString(TOKEN)
         return try {
@@ -123,8 +121,6 @@ class ChatRepositoryImpl @Inject constructor(
             Response.Error("Could not get Queue for: $userId")
         }
     }
-
-
     override suspend fun getUser(userId: Long): Response<User> {
         return try {
             Response.Success(

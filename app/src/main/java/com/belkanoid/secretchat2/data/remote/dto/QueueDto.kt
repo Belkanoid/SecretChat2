@@ -4,11 +4,11 @@ import com.google.gson.annotations.SerializedName
 
 data class QueueDto(
     @SerializedName("id")
-    val id: Int,
+    val id: Long,
     @SerializedName("userId")
-    val userId: Int,
+    val userId: Long,
     @SerializedName("messageId")
-    val messageId: Int,
+    val messageId: Long,
     @SerializedName("timestamp")
-    val timestamp: Int
+    val timestamp: Long
 )
