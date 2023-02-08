@@ -1,4 +1,4 @@
-package com.belkanoid.secretchat2.presentation
+package com.belkanoid.secretchat2.presentation.chatList
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
