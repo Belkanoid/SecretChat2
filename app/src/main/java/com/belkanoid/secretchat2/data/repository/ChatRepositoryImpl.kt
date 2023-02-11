@@ -18,14 +18,21 @@ import com.belkanoid.secretchat2.domain.util.SharedPreferences
 import com.belkanoid.secretchat2.domain.util.SharedPreferences.Companion.PRIVATE_KEY
 import com.belkanoid.secretchat2.domain.util.SharedPreferences.Companion.PUBLIC_KEY
 import com.belkanoid.secretchat2.domain.util.SharedPreferences.Companion.TOKEN
+import com.belkanoid.secretchat2.domain.util.SharedPreferences.Companion.USER_ID
 import com.belkanoid.secretchat2.domain.util.log
+import com.belkanoid.secretchat2.domain.util.rethrowCancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 import retrofit2.Call
 import java.util.*
 import javax.inject.Inject
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 class ChatRepositoryImpl @Inject constructor(
     private val service: ChatApi,
@@ -36,8 +43,9 @@ class ChatRepositoryImpl @Inject constructor(
         receiver: Long,
         sender: Long,
         message: String
-    ): Flow<Response<Boolean>> {
-        val receiverPublicKey = getUser(receiver).data?.PublicKey ?: throw RuntimeException("receiverPublicKey is null")
+    ): Boolean = withContext(Dispatchers.IO) {
+        val receiverPublicKey =
+            getUser(receiver).data?.PublicKey ?: throw RuntimeException("receiverPublicKey is null")
         val encryptedMessage = rsaKey.encryptMessage(message, receiverPublicKey)
 
         val messageBody = MessageBody(
@@ -47,26 +55,29 @@ class ChatRepositoryImpl @Inject constructor(
             timestamp = Date().time,
             isEdited = false
         )
-        return callbackFlow {
-            service.sendMessage(postMessageBody = messageBody).enqueue(
-                object : retrofit2.Callback<MessageDto> {
-                    override fun onResponse(
-                        call: Call<MessageDto>,
-                        response: retrofit2.Response<MessageDto>
-                    ) {
-                        launch { send(Response.Success(true)) }
-                    }
+        suspendCancellableCoroutine() { continuation ->
+            launch(Dispatchers.IO) {
+                service.sendMessage(postMessageBody = messageBody).enqueue(
+                    object : retrofit2.Callback<MessageDto> {
+                        override fun onResponse(
+                            call: Call<MessageDto>,
+                            response: retrofit2.Response<MessageDto>
+                        ) {
+                            continuation.resume(true)
+                        }
 
-                    override fun onFailure(call: Call<MessageDto>, t: Throwable) {
-                        launch { send(Response.Error("Could not send Message :(", null)) }
+                        override fun onFailure(call: Call<MessageDto>, t: Throwable) {
+                            continuation.resume(false)
+                        }
                     }
-                }
-            )
-            awaitClose { log("ChatRepository", "Message $message is send") }
+                )
+            }
         }
     }
 
-    override suspend fun createUser(userName: String): Flow<Response<Boolean>> {
+    override suspend fun createUser(
+        userName: String
+    ): Boolean = withContext(Dispatchers.IO) {
         val token = UUID.randomUUID().toString().replace("-", "")
         val publicKey = sharedPreferences.getString(PUBLIC_KEY)
         sharedPreferences.putString(TOKEN, token)
@@ -77,57 +88,77 @@ class ChatRepositoryImpl @Inject constructor(
             pkey = publicKey,
             token = token
         )
-        return callbackFlow {
-            service.createUser(postUserBody = userBody).enqueue(
-                object : retrofit2.Callback<UserDto> {
-                    override fun onResponse(
-                        call: Call<UserDto>,
-                        response: retrofit2.Response<UserDto>
-                    ) {
-                        launch { send(Response.Success(true)) }
-                    }
+        suspendCancellableCoroutine { continuation ->
+            launch(Dispatchers.IO) {
+                service.createUser(postUserBody = userBody).enqueue(
+                    object : retrofit2.Callback<UserDto> {
+                        override fun onResponse(
+                            call: Call<UserDto>,
+                            response: retrofit2.Response<UserDto>
+                        ) {
+                            continuation.resume(true)
+                        }
 
-                    override fun onFailure(call: Call<UserDto>, t: Throwable) {
-                        launch { send(Response.Error("Could not create User :(", null)) }
+                        override fun onFailure(call: Call<UserDto>, t: Throwable) {
+                            continuation.resume(false)
+                        }
                     }
-                }
-            )
-            awaitClose { log("ChatRepository", "User $userName is created") }
+                )
+            }
         }
-
     }
-    override suspend fun getMessage(messageId: Long): Response<Message> {
+
+    override suspend fun getMessages(oldMessagesId: List<Long>): List<Response<Message>> = withContext(Dispatchers.IO) {
+        try {
+            val currentMessagesId = getQueue().data?.map { it.messageId } ?: listOf()
+            val newMessagesId = currentMessagesId.subtract(oldMessagesId.toSet())
+            newMessagesId.map { getMessage(it) }//Lis<Response<Message>>
+        }catch (e: Exception) {
+            e.rethrowCancellationException()
+            log("Chat repository", e.message ?: "Could not get Messages")
+            listOf(Response.Error("Could not get Messages"))
+        }
+    }
+
+    private suspend fun getMessage(messageId: Long): Response<Message> = withContext(Dispatchers.IO) {
         val token = sharedPreferences.getString(TOKEN)
         val privateKey = sharedPreferences.getString(PRIVATE_KEY)
-        return try {
-            val data =service.getMessage(messageId, token).toMessage()
-            val decryptedMessage = rsaKey.decryptMessage(data.message, privateKey)
+        try {
+            val message = service.getMessage(messageId, token).toMessage()
+            val decryptedMessage = rsaKey.decryptMessage(message.message, privateKey)
             Response.Success(
-                data = data.copy(message = decryptedMessage)
+                data = message.copy(message = decryptedMessage)
             )
-        } catch (e: Exception) {
-            log("ChatRepository", e.message ?: "Could not get Message: $messageId")
-            Response.Error("Could not get Message: $messageId")
+        }catch (e: Exception) {
+            e.rethrowCancellationException()
+            log("Chat repository", e.message ?: "Could not get message with $messageId id")
+            Response.Error("Could not get message with $messageId id")
         }
     }
-    override suspend fun getQueue(userId: Long): Response<List<Queue>> {
-        val token = sharedPreferences.getString(TOKEN)
-        return try {
-            Response.Success(
-                data = service.getQueue(userId, token).map { it.toQueue() }
-            )
-        } catch (e: Exception) {
-            log("ChatRepository", e.message ?: "Could not get Queue for: $userId")
-            Response.Error("Could not get Queue for: $userId")
+
+    private suspend fun getQueue(): Response<List<Queue>> =
+        withContext(Dispatchers.IO) {
+            val currentUserId = sharedPreferences.getLong()
+            val token = sharedPreferences.getString(TOKEN)
+            try {
+                Response.Success(
+                    data = service.getQueue(currentUserId, token).map { it.toQueue() }
+                )
+            } catch (e: Exception) {
+                e.rethrowCancellationException()
+                log("ChatRepository", e.message ?: "Could not get Queue for: $currentUserId")
+                Response.Error("Could not get Queue for: $currentUserId")
+            }
         }
-    }
-    override suspend fun getUser(userId: Long): Response<User> {
-        return try {
+
+    override suspend fun getUser(userId: Long): Response<User> = withContext(Dispatchers.IO) {
+        try {
             Response.Success(
                 data = service.getUser(userId).toUser()
             )
         } catch (e: Exception) {
-            log("ChatRepository",e.message ?: "Could not get User: $userId")
+            e.rethrowCancellationException()
+            log("ChatRepository", e.message ?: "Could not get User: $userId")
             Response.Error("Could not get User: $userId")
         }
     }
