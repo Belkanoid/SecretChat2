@@ -21,43 +21,61 @@ class ChatListViewModel @Inject constructor(
 
     private val _chatListSate = MutableStateFlow<ChatListState>(ChatListState.Empty)
     val chatListState = _chatListSate.asStateFlow()
+
     private val _currentMessagedId = MutableStateFlow<List<Long>>(listOf())
 
-    var currentMessages: Flow<List<Message>> = flow {
-        val listOfResponseMessages = repository.getMessages(_currentMessagedId.value)
-        val messages = listOfResponseMessages.map { responseMessage ->
-            when (responseMessage) {
-                is Response.Success -> {
-                    responseMessage.data!!
-                }
-                is Response.Error -> {
-                    Message(-1L, -1L, -1L, responseMessage.message ?: "Error", 0, false)
-                }
-            }
-        }
-        _currentMessagedId.value = messages.map { it.id }
-        emit(messages)
-    }
-
-    private val currentUserId by lazy {
+    val currentUserId by lazy {
         sharedPreferences.getLong()
     }
 
-
-    fun sendMessage(receiver: Long, message: String): Flow<Boolean> = flow {
-        val success: Boolean = repository.sendMessage(
-            receiver = receiver,
-            sender = currentUserId,
-            message = message
-        )
-        emit(success)
+    init {
+        if(currentUserId == -1L) {
+            _chatListSate.value = ChatListState.OnCreateUser.NeedToCreateUser
+        }
     }
 
-    fun createUser(userName: String): Boolean {
-        return false
+    var currentMessages: Flow<List<Message>> = flow {
+        while (true) {
+            delay(500L)
+            val listOfResponseMessages = repository.getMessages(_currentMessagedId.value)
+            val messages = listOfResponseMessages.map { responseMessage ->
+                when (responseMessage) {
+                    is Response.Success -> {
+                        responseMessage.data!!
+                    }
+                    is Response.Error -> {
+                        Message(-1L, -1L, currentUserId, responseMessage.message ?: "Error", 0, false)
+                    }
+                }
+            }
+            _currentMessagedId.value = messages.map { it.id }
+            emit(messages)
+        }
     }
 
-    fun getUser() {
-
+    fun onChatListEvent(event: ChatListEvent) {
+        when(event) {
+            is ChatListEvent.SendNewMessage -> {
+                sendMessage(event.receiver, event.message)
+            }
+            is ChatListEvent.CreateNewUser -> {
+                createUser(event.userName)
+            }
+        }
     }
+
+    private fun sendMessage(receiver: Long, message: String) {
+        viewModelScope.launch {
+            val isSuccess = repository.sendMessage(receiver, currentUserId, message)
+            _chatListSate.value = ChatListState.OnSendMessage(isSuccess)
+        }
+    }
+
+    private fun createUser(userName: String) {
+        viewModelScope.launch {
+            val isSuccess = repository.createUser(userName)
+            _chatListSate.value = ChatListState.OnCreateUser.IsUserCreated((isSuccess))
+        }
+    }
+
 }

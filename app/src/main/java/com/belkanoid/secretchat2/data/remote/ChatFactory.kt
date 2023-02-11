@@ -12,8 +12,8 @@ object ChatFactory {
         .addInterceptor(ChatInterceptor())
         .build()
 
-    val service by lazy {
-        val retrofit = Retrofit.Builder()
+    val service: ChatApi by lazy {
+        Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())

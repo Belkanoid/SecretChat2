@@ -55,7 +55,7 @@ class ChatRepositoryImpl @Inject constructor(
             timestamp = Date().time,
             isEdited = false
         )
-        suspendCancellableCoroutine() { continuation ->
+        suspendCancellableCoroutine { cancellableContinuation ->
             launch(Dispatchers.IO) {
                 service.sendMessage(postMessageBody = messageBody).enqueue(
                     object : retrofit2.Callback<MessageDto> {
@@ -63,11 +63,11 @@ class ChatRepositoryImpl @Inject constructor(
                             call: Call<MessageDto>,
                             response: retrofit2.Response<MessageDto>
                         ) {
-                            continuation.resume(true)
+                            cancellableContinuation.resume(true)
                         }
 
                         override fun onFailure(call: Call<MessageDto>, t: Throwable) {
-                            continuation.resume(false)
+                            cancellableContinuation.resume(false)
                         }
                     }
                 )
@@ -88,7 +88,7 @@ class ChatRepositoryImpl @Inject constructor(
             pkey = publicKey,
             token = token
         )
-        suspendCancellableCoroutine { continuation ->
+        suspendCancellableCoroutine { cancellableContinuation ->
             launch(Dispatchers.IO) {
                 service.createUser(postUserBody = userBody).enqueue(
                     object : retrofit2.Callback<UserDto> {
@@ -96,11 +96,13 @@ class ChatRepositoryImpl @Inject constructor(
                             call: Call<UserDto>,
                             response: retrofit2.Response<UserDto>
                         ) {
-                            continuation.resume(true)
+                            val userId = response.body()?.id ?: -1L
+                            sharedPreferences.putLong(value = userId)
+                            cancellableContinuation.resume(true)
                         }
 
                         override fun onFailure(call: Call<UserDto>, t: Throwable) {
-                            continuation.resume(false)
+                            cancellableContinuation.resume(false)
                         }
                     }
                 )
@@ -136,8 +138,7 @@ class ChatRepositoryImpl @Inject constructor(
         }
     }
 
-    private suspend fun getQueue(): Response<List<Queue>> =
-        withContext(Dispatchers.IO) {
+    private suspend fun getQueue(): Response<List<Queue>> = withContext(Dispatchers.IO) {
             val currentUserId = sharedPreferences.getLong()
             val token = sharedPreferences.getString(TOKEN)
             try {

@@ -71,11 +71,11 @@ class RsaKey @Inject constructor(
             PRIVATE_KEY,
             Base64.getEncoder().encodeToString(privateKey.encoded)
         )
-        log("Private Key Generated")
+        log("RsaKey","Private Key Generated")
         sharedPreferences.putString(
             PUBLIC_KEY,
             Base64.getEncoder().encodeToString(publicKey.encoded)
         )
-        log("Public Key Generated")
+        log("RsaKey","Public Key Generated")
     }
 }
