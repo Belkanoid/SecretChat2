@@ -12,10 +12,10 @@ import retrofit2.http.*
 interface ChatApi {
 
     @POST("users")
-    suspend fun createUser(@Body postUserBody: UserBody): Call<UserDto>
+    fun createUser(@Body postUserBody: UserBody): Call<UserDto>
 
     @POST("messages")
-    suspend fun sendMessage(@Body postMessageBody: MessageBody): Call<MessageDto>
+    fun sendMessage(@Body postMessageBody: MessageBody): Call<MessageDto>
 
     @GET("messages/{id}")
     suspend fun getMessage(@Path("id") messageId: Long, @Query("token") token: String): MessageDto

@@ -1,5 +1,6 @@
 package com.belkanoid.secretchat2.data.repository
 
+import android.util.Log
 import com.belkanoid.secretchat2.data.mapper.toMessage
 import com.belkanoid.secretchat2.data.mapper.toQueue
 import com.belkanoid.secretchat2.data.mapper.toUser
@@ -98,6 +99,7 @@ class ChatRepositoryImpl @Inject constructor(
                         ) {
                             val userId = response.body()?.id ?: -1L
                             sharedPreferences.putLong(value = userId)
+                            Log.d("CFB", "$userId")
                             cancellableContinuation.resume(true)
                         }
 

@@ -22,12 +22,9 @@ class ChatListViewModel @Inject constructor(
     private val _chatListSate = MutableStateFlow<ChatListState>(ChatListState.Empty)
     val chatListState = _chatListSate.asStateFlow()
 
-    private val _currentMessagedId = MutableStateFlow<List<Long>>(listOf())
 
-    val currentUserId by lazy {
-        sharedPreferences.getLong()
-    }
-
+    val currentUserId: Long
+        get() = sharedPreferences.getLong()
     init {
         if(currentUserId == -1L) {
             _chatListSate.value = ChatListState.OnCreateUser.NeedToCreateUser
@@ -35,9 +32,10 @@ class ChatListViewModel @Inject constructor(
     }
 
     var currentMessages: Flow<List<Message>> = flow {
+        var currentMessagedId = listOf<Long>()
         while (true) {
             delay(500L)
-            val listOfResponseMessages = repository.getMessages(_currentMessagedId.value)
+            val listOfResponseMessages = repository.getMessages(currentMessagedId)
             val messages = listOfResponseMessages.map { responseMessage ->
                 when (responseMessage) {
                     is Response.Success -> {
@@ -48,12 +46,13 @@ class ChatListViewModel @Inject constructor(
                     }
                 }
             }
-            _currentMessagedId.value = messages.map { it.id }
+            currentMessagedId = messages.map { it.id }
             emit(messages)
         }
     }
 
     fun onChatListEvent(event: ChatListEvent) {
+        _chatListSate.value = ChatListState.Loading
         when(event) {
             is ChatListEvent.SendNewMessage -> {
                 sendMessage(event.receiver, event.message)

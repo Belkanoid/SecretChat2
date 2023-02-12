@@ -3,6 +3,7 @@ package com.belkanoid.secretchat2.presentation.chatList
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -34,11 +35,19 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         component.inject(this)
         handleSate()
+        handleEvent()
+        lifecycleScope.launchWhenStarted {
+            viewModel.currentMessages.collect{messages ->
+                Log.d("ChatList228", messages.toString())
+            }
+        }
     }
 
     private fun handleSate() {
+        binding.anotherTv.text = viewModel.currentUserId.toString()
         lifecycleScope.launch {
             viewModel.chatListState.collect{state->
+                binding.progressBar.visibility = View.INVISIBLE
                 when(state) {
                     is ChatListState.Success -> {
 
@@ -59,7 +68,7 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                     is ChatListState.Loading -> {
-
+                        binding.progressBar.visibility = View.VISIBLE
                     }
 
                     is ChatListState.Empty -> Unit
@@ -67,11 +76,11 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-    private fun handleEvent(event: ChatListEvent) {
+    private fun handleEvent() {
         binding.pushButton.setOnClickListener {
             viewModel.onChatListEvent(
                 ChatListEvent.CreateNewUser(
-                    binding.tvUserName.text.toString()
+                    binding.etChatList.text.toString()
                 )
             )
         }
