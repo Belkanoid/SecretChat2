@@ -35,54 +35,13 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         component.inject(this)
         handleSate()
-        handleEvent()
-        lifecycleScope.launchWhenStarted {
-            viewModel.currentMessages.collect{messages ->
-                Log.d("ChatList228", messages.toString())
-            }
-        }
+
     }
 
     private fun handleSate() {
-        binding.anotherTv.text = viewModel.currentUserId.toString()
-        lifecycleScope.launch {
-            viewModel.chatListState.collect{state->
-                binding.progressBar.visibility = View.INVISIBLE
-                when(state) {
-                    is ChatListState.Success -> {
 
-                    }
-                    is ChatListState.Error -> {
-
-                    }
-                    is ChatListState.OnSendMessage -> {
-
-                    }
-                    is ChatListState.OnCreateUser.NeedToCreateUser -> {
-                        binding.tvUserName.text = "Need to create User"
-                    }
-                    is ChatListState.OnCreateUser.IsUserCreated -> {
-                        binding.anotherTv.text = state.success.toString()
-                        if (state.success) {
-                            binding.tvUserName.text = "your id is ${viewModel.currentUserId}"
-                        }
-                    }
-                    is ChatListState.Loading -> {
-                        binding.progressBar.visibility = View.VISIBLE
-                    }
-
-                    is ChatListState.Empty -> Unit
-                }
-            }
-        }
     }
-    private fun handleEvent() {
-        binding.pushButton.setOnClickListener {
-            viewModel.onChatListEvent(
-                ChatListEvent.CreateNewUser(
-                    binding.etChatList.text.toString()
-                )
-            )
-        }
+    private fun handleEvent(event: ChatListEvent) {
+        viewModel.onChatListEvent(event)
     }
 }
