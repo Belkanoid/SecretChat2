@@ -19,13 +19,8 @@ import com.belkanoid.secretchat2.domain.util.SharedPreferences
 import com.belkanoid.secretchat2.domain.util.SharedPreferences.Companion.PRIVATE_KEY
 import com.belkanoid.secretchat2.domain.util.SharedPreferences.Companion.PUBLIC_KEY
 import com.belkanoid.secretchat2.domain.util.SharedPreferences.Companion.TOKEN
-import com.belkanoid.secretchat2.domain.util.SharedPreferences.Companion.USER_ID
-import com.belkanoid.secretchat2.domain.util.log
 import com.belkanoid.secretchat2.domain.util.rethrowCancellationException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -33,7 +28,6 @@ import retrofit2.Call
 import java.util.*
 import javax.inject.Inject
 import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 class ChatRepositoryImpl @Inject constructor(
     private val service: ChatApi,
@@ -82,7 +76,7 @@ class ChatRepositoryImpl @Inject constructor(
         val token = UUID.randomUUID().toString().replace("-", "")
         val publicKey = sharedPreferences.getString(PUBLIC_KEY)
         sharedPreferences.putString(TOKEN, token)
-        log("ChatRepository", "token for $userName is generated")
+        log("token for $userName is generated")
 
         val userBody = UserBody(
             name = userName,
@@ -99,7 +93,6 @@ class ChatRepositoryImpl @Inject constructor(
                         ) {
                             val userId = response.body()?.id ?: -1L
                             sharedPreferences.putLong(value = userId)
-                            Log.d("CFB", "$userId")
                             cancellableContinuation.resume(true)
                         }
 
@@ -121,7 +114,7 @@ class ChatRepositoryImpl @Inject constructor(
             )
         }catch (e: Exception) {
             e.rethrowCancellationException()
-            log("Chat repository", e.message ?: "Could not get Messages")
+            log( e.message ?: "Could not get Messages")
             Response.Error("Could not get Messages")
         }
     }
@@ -135,7 +128,7 @@ class ChatRepositoryImpl @Inject constructor(
             message.copy(message = decryptedMessage)
         }catch (e: Exception) {
             e.rethrowCancellationException()
-            log("Chat repository", e.message ?: "Could not get message with $messageId id")
+            log( e.message ?: "Could not get message with $messageId id")
             throw RuntimeException("Could not get message with $messageId id")
         }
     }
@@ -149,7 +142,7 @@ class ChatRepositoryImpl @Inject constructor(
                 )
             } catch (e: Exception) {
                 e.rethrowCancellationException()
-                log("ChatRepository", e.message ?: "Could not get Queue for: $currentUserId")
+                log(e.message ?: "Could not get Queue for: $currentUserId")
                 Response.Error("Could not get Queue for: $currentUserId")
             }
         }
@@ -161,8 +154,15 @@ class ChatRepositoryImpl @Inject constructor(
             )
         } catch (e: Exception) {
             e.rethrowCancellationException()
-            log("ChatRepository", e.message ?: "Could not get User: $userId")
+            log(e.message ?: "Could not get User: $userId")
             Response.Error("Could not get User: $userId")
+        }
+    }
+
+
+    companion object {
+        fun log(text: String) {
+            Log.i(ChatRepositoryImpl::class.java.name, text)
         }
     }
 }

@@ -69,9 +69,7 @@ class ChatListFragment : Fragment() {
             is ChatListState.Data -> {
                 val newMessages = state.data.toMutableList()
                 val oldMessagesSize = chatListAdapter.currentList.size
-                withContext(Dispatchers.Main) {
-                    chatListAdapter.submitList(newMessages)
-                }
+                chatListAdapter.submitList(newMessages)
                 if (oldMessagesSize != newMessages.size) {
                     binding.recyclerView.smoothScrollToPosition(0)
                 }

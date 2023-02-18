@@ -1,5 +1,7 @@
 package com.belkanoid.secretchat2.data.rsa
 
+import android.util.Log
+import com.belkanoid.secretchat2.data.repository.ChatRepositoryImpl
 import com.belkanoid.secretchat2.domain.util.SharedPreferences
 import com.belkanoid.secretchat2.domain.util.SharedPreferences.Companion.PRIVATE_KEY
 import com.belkanoid.secretchat2.domain.util.SharedPreferences.Companion.PUBLIC_KEY
@@ -71,11 +73,18 @@ class RsaKey @Inject constructor(
             PRIVATE_KEY,
             Base64.getEncoder().encodeToString(privateKey.encoded)
         )
-        log("RsaKey","Private Key Generated")
+        log("Private Key Generated")
         sharedPreferences.putString(
             PUBLIC_KEY,
             Base64.getEncoder().encodeToString(publicKey.encoded)
         )
-        log("RsaKey","Public Key Generated")
+        log("Public Key Generated")
+    }
+
+
+    companion object {
+        fun log(text: String) {
+            Log.i(RsaKey::class.java.name, text)
+        }
     }
 }
