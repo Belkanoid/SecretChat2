@@ -112,31 +112,31 @@ class ChatRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getMessages(oldMessagesId: List<Long>): List<Response<Message>> = withContext(Dispatchers.IO) {
+    override suspend fun getMessages(oldMessagesId: List<Long>): Response<List<Message>> = withContext(Dispatchers.IO) {
         try {
             val currentMessagesId = getQueue().data?.map { it.messageId } ?: listOf()
             val newMessagesId = currentMessagesId.subtract(oldMessagesId.toSet())
-            newMessagesId.map { getMessage(it) }//Lis<Response<Message>>
+            Response.Success(
+                data = newMessagesId.map { getMessage(it) }
+            )
         }catch (e: Exception) {
             e.rethrowCancellationException()
             log("Chat repository", e.message ?: "Could not get Messages")
-            listOf(Response.Error("Could not get Messages"))
+            Response.Error("Could not get Messages")
         }
     }
 
-    private suspend fun getMessage(messageId: Long): Response<Message> = withContext(Dispatchers.IO) {
+    private suspend fun getMessage(messageId: Long): Message = withContext(Dispatchers.IO) {
         val token = sharedPreferences.getString(TOKEN)
         val privateKey = sharedPreferences.getString(PRIVATE_KEY)
         try {
             val message = service.getMessage(messageId, token).toMessage()
             val decryptedMessage = rsaKey.decryptMessage(message.message, privateKey)
-            Response.Success(
-                data = message.copy(message = decryptedMessage)
-            )
+            message.copy(message = decryptedMessage)
         }catch (e: Exception) {
             e.rethrowCancellationException()
             log("Chat repository", e.message ?: "Could not get message with $messageId id")
-            Response.Error("Could not get message with $messageId id")
+            throw RuntimeException("Could not get message with $messageId id")
         }
     }
 

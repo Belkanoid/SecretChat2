@@ -13,7 +13,7 @@ interface ChatRepository {
 
     suspend fun createUser(userName: String): Boolean
 
-    suspend fun getMessages(oldMessagesId: List<Long>): List<Response<Message>>
+    suspend fun getMessages(oldMessagesId: List<Long>): Response<List<Message>>
 
     suspend fun getUser(userId: Long): Response<User>
 }
