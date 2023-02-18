@@ -44,8 +44,8 @@
         android:id="@+id/chatListItemDate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="20sp"
-        android:textColor="@color/black"
+        android:textSize="16sp"
+        android:textColor="#4A4A4A"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="28.02.2023" />

@@ -12,9 +12,13 @@ import androidx.lifecycle.lifecycleScope
 import com.belkanoid.secretchat2.R
 import com.belkanoid.secretchat2.databinding.FragmentChatListBinding
 import com.belkanoid.secretchat2.presentation.ChatApplication
+import com.belkanoid.secretchat2.presentation.chatList.chatListRecycler.ChatListAdapter
 import com.belkanoid.secretchat2.presentation.chatList.viewModel.ChatListState
 import com.belkanoid.secretchat2.presentation.chatList.viewModel.ChatListViewModel
 import com.belkanoid.secretchat2.presentation.factory.ViewModelFactory
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 
@@ -34,6 +38,8 @@ class ChatListFragment : Fragment() {
         ViewModelProvider(this, viewModelFactory)[ChatListViewModel::class.java]
     }
 
+    private lateinit var chatListAdapter: ChatListAdapter
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -45,18 +51,30 @@ class ChatListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        lifecycleScope.launchWhenStarted {
+        binding.recyclerView.apply {
+            chatListAdapter = ChatListAdapter()
+            adapter = chatListAdapter
+        }
+
+        lifecycleScope.launch {
             viewModel.chatListState.collect { state ->
                 handleState(state)
             }
         }
     }
 
-    private fun handleState(state: ChatListState) {
+    private suspend fun handleState(state: ChatListState) {
         binding.chatListProgressBar.visibility = View.INVISIBLE
         when (state) {
-            is ChatListState.Data<*> -> {
-                Log.d("ABDC", state.data.toString())
+            is ChatListState.Data -> {
+                val newMessages = state.data.toMutableList()
+                val oldMessagesSize = chatListAdapter.currentList.size
+                withContext(Dispatchers.Main) {
+                    chatListAdapter.submitList(newMessages)
+                }
+                if (oldMessagesSize != newMessages.size) {
+                    binding.recyclerView.smoothScrollToPosition(0)
+                }
             }
             is ChatListState.Loading -> {
                 binding.chatListProgressBar.visibility = View.VISIBLE
@@ -69,7 +87,6 @@ class ChatListFragment : Fragment() {
     }
 
     companion object {
-
         fun newInstance() = ChatListFragment()
     }
 }

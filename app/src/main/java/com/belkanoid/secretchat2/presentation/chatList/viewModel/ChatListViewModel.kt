@@ -21,14 +21,15 @@ class ChatListViewModel @Inject constructor(
 
     private val currentUserId = sharedPreferences.getLong()
     init {
+        _chatListSate.value = ChatListState.Loading
+        val currentMessages = mutableListOf<Message>()
         viewModelScope.launch {
-            val currentMessages = mutableListOf<Message>()
             while (true) {
                 delay(800L)
                 when(val response = repository.getMessages(currentMessages.map { it.id })) {
                     is Response.Success -> {
                         currentMessages.addAll(response.data ?: listOf())
-                        _chatListSate.value = ChatListState.Data(currentMessages)
+                        _chatListSate.value = ChatListState.Data(currentMessages.sortedByDescending { it.timestamp })
                     }
                     is Response.Error -> {
                         _chatListSate.value = ChatListState.Error(response.message ?: "Unknown Error")
