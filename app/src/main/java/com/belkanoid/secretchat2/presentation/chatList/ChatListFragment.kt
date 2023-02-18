@@ -45,7 +45,7 @@ class ChatListFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentChatListBinding.inflate(inflater, container, false)
-        component.inject(this)
+        component.inject(this@ChatListFragment)
         return binding.root
     }
 
