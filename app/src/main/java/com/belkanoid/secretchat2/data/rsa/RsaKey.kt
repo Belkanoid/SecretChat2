@@ -1,11 +1,9 @@
 package com.belkanoid.secretchat2.data.rsa
 
 import android.util.Log
-import com.belkanoid.secretchat2.data.repository.ChatRepositoryImpl
 import com.belkanoid.secretchat2.domain.util.SharedPreferences
 import com.belkanoid.secretchat2.domain.util.SharedPreferences.Companion.PRIVATE_KEY
 import com.belkanoid.secretchat2.domain.util.SharedPreferences.Companion.PUBLIC_KEY
-import com.belkanoid.secretchat2.domain.util.log
 import java.io.IOException
 import java.security.*
 import java.security.spec.PKCS8EncodedKeySpec
@@ -17,8 +15,8 @@ import javax.inject.Inject
 class RsaKey @Inject constructor(
     private val sharedPreferences: SharedPreferences
 ) {
-    var privateKey: PrivateKey
-    var publicKey: PublicKey
+    private var privateKey: PrivateKey
+    private var publicKey: PublicKey
 
 
     // convert String publickey to Key object

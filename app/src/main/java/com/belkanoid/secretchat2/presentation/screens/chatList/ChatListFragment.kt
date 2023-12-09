@@ -1,24 +1,20 @@
-package com.belkanoid.secretchat2.presentation.chatList
+package com.belkanoid.secretchat2.presentation.screens.chatList
 
 import android.os.Bundle
-import android.os.Message
-import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import com.belkanoid.secretchat2.R
 import com.belkanoid.secretchat2.databinding.FragmentChatListBinding
 import com.belkanoid.secretchat2.presentation.ChatApplication
-import com.belkanoid.secretchat2.presentation.chatList.chatListRecycler.ChatListAdapter
-import com.belkanoid.secretchat2.presentation.chatList.viewModel.ChatListState
-import com.belkanoid.secretchat2.presentation.chatList.viewModel.ChatListViewModel
+import com.belkanoid.secretchat2.presentation.screens.chatList.chatListRecycler.ChatListAdapter
+import com.belkanoid.secretchat2.presentation.screens.chatList.viewModel.ChatListState
+import com.belkanoid.secretchat2.presentation.screens.chatList.viewModel.ChatListViewModel
 import com.belkanoid.secretchat2.presentation.factory.ViewModelFactory
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
 
 
@@ -45,7 +41,7 @@ class ChatListFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentChatListBinding.inflate(inflater, container, false)
-        component.inject(this@ChatListFragment)
+        component.inject(this)
         return binding.root
     }
 
@@ -55,31 +51,33 @@ class ChatListFragment : Fragment() {
             chatListAdapter = ChatListAdapter()
             adapter = chatListAdapter
         }
+        viewModel.chatListState
+            .onEach { state -> handleState(state) }.
+            launchIn(lifecycleScope)
 
-        lifecycleScope.launch {
-            viewModel.chatListState.collect { state ->
-                handleState(state)
-            }
-        }
     }
 
-    private suspend fun handleState(state: ChatListState) {
-        binding.chatListProgressBar.visibility = View.INVISIBLE
-        when (state) {
-            is ChatListState.Data -> {
-                val newMessages = state.data.toMutableList()
-                val oldMessagesSize = chatListAdapter.currentList.size
-                chatListAdapter.submitList(newMessages)
-                if (oldMessagesSize != newMessages.size) {
-                    binding.recyclerView.smoothScrollToPosition(0)
+    private fun handleState(state: ChatListState) {
+        with(binding) {
+            when (state) {
+                is ChatListState.Data -> {
+                    val newMessages = state.data.toMutableList()
+                    val oldMessagesSize = chatListAdapter.currentList.size
+                    chatListAdapter.submitList(newMessages)
+                    if (oldMessagesSize != newMessages.size) {
+                        binding.recyclerView.smoothScrollToPosition(0)
+                    }
                 }
+
+                is ChatListState.Loading -> {
+                    binding.chatListProgressBar.visibility = View.VISIBLE
+                }
+
+                is ChatListState.Error -> {
+                }
+
+                is ChatListState.Empty -> Unit
             }
-            is ChatListState.Loading -> {
-                binding.chatListProgressBar.visibility = View.VISIBLE
-            }
-            is ChatListState.Error -> {
-            }
-            is ChatListState.Empty -> Unit
         }
 
     }

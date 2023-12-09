@@ -1,14 +1,14 @@
-package com.belkanoid.secretchat2.presentation.newMessage
+package com.belkanoid.secretchat2.presentation.screens.newMessage
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.belkanoid.secretchat2.domain.repository.ChatRepository
+import com.belkanoid.secretchat2.domain.repository.NewMessageRepository
 import com.belkanoid.secretchat2.domain.util.SharedPreferences
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class NewMessageViewModel @Inject constructor(
-    private val repository: ChatRepository,
+    private val repository: NewMessageRepository,
     private val sharedPreferences: SharedPreferences,
 ): ViewModel() {
 

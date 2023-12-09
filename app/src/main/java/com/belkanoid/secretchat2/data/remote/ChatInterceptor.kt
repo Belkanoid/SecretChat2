@@ -1,9 +1,7 @@
 package com.belkanoid.secretchat2.data.remote
 
 
-import okhttp3.HttpUrl
 import okhttp3.Interceptor
-import okhttp3.Request
 import okhttp3.Response
 
 class ChatInterceptor: Interceptor {

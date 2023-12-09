@@ -1,17 +1,15 @@
-package com.belkanoid.secretchat2.presentation.registration
+package com.belkanoid.secretchat2.presentation.screens.registration
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import com.belkanoid.secretchat2.R
-import com.belkanoid.secretchat2.databinding.FragmentChatListBinding
 import com.belkanoid.secretchat2.databinding.FragmentRegistrationBinding
 import com.belkanoid.secretchat2.presentation.ChatApplication
 import com.belkanoid.secretchat2.presentation.factory.ViewModelFactory
-import com.belkanoid.secretchat2.presentation.registration.viewModel.RegistrationViewModel
+import com.belkanoid.secretchat2.presentation.screens.registration.viewModel.RegistrationViewModel
 import javax.inject.Inject
 
 

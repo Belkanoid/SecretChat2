@@ -1,7 +1,7 @@
 package com.belkanoid.secretchat2.di
 
 import androidx.lifecycle.ViewModel
-import com.belkanoid.secretchat2.presentation.chatList.viewModel.ChatListViewModel
+import com.belkanoid.secretchat2.presentation.screens.chatList.viewModel.ChatListViewModel
 import dagger.Binds
 import dagger.MapKey
 import dagger.Module

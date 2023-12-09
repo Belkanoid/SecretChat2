@@ -1,4 +1,4 @@
-package com.belkanoid.secretchat2.presentation.chatList.chatListRecycler
+package com.belkanoid.secretchat2.presentation.screens.chatList.chatListRecycler
 
 
 import android.view.LayoutInflater

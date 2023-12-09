@@ -1,16 +1,15 @@
-package com.belkanoid.secretchat2.presentation.registration.viewModel
+package com.belkanoid.secretchat2.presentation.screens.registration.viewModel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.belkanoid.secretchat2.domain.repository.ChatRepository
-import com.belkanoid.secretchat2.presentation.chatList.viewModel.ChatListState
+import com.belkanoid.secretchat2.domain.repository.NewUserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class RegistrationViewModel @Inject constructor(
-    private val repository: ChatRepository,
+    private val repository: NewUserRepository,
 ): ViewModel(){
 
     private val _registrationSate = MutableStateFlow<RegistrationState>(RegistrationState.Empty)
@@ -22,7 +21,7 @@ class RegistrationViewModel @Inject constructor(
 
         viewModelScope.launch {
             val result = repository.createUser(userName)
-            _registrationSate.value = RegistrationState.Success(result)
+//            _registrationSate.value = RegistrationState.Success(result)
         }
     }
 

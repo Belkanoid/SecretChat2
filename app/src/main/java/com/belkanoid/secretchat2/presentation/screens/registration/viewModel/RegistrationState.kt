@@ -1,4 +1,4 @@
-package com.belkanoid.secretchat2.presentation.registration.viewModel
+package com.belkanoid.secretchat2.presentation.screens.registration.viewModel
 
 sealed class RegistrationState {
     data class Success(val isRegistered: Boolean): RegistrationState()

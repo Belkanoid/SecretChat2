@@ -1,4 +1,4 @@
-package com.belkanoid.secretchat2.presentation.chatList.viewModel
+package com.belkanoid.secretchat2.presentation.screens.chatList.viewModel
 
 import com.belkanoid.secretchat2.domain.model.Message
 
