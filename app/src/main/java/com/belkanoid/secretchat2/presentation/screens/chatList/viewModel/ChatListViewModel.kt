@@ -3,12 +3,14 @@ package com.belkanoid.secretchat2.presentation.screens.chatList.viewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.belkanoid.secretchat2.domain.repository.ChatListRepository
+import com.belkanoid.secretchat2.domain.repository.NewMessageRepository
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import javax.inject.Inject
 
 class ChatListViewModel @Inject constructor(
-    private val repository: ChatListRepository
+    private val repository: ChatListRepository,
+    private val dva: NewMessageRepository
 ) : ViewModel() {
 
     private val _chatListSate = MutableStateFlow<ChatListState>(ChatListState.Empty)

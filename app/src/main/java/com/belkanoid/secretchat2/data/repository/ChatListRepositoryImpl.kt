@@ -60,7 +60,4 @@ class ChatListRepositoryImpl @Inject constructor(
             emit(Response.Error(message = "Could not get queue for: $currentUserId"))
         }
     }
-
-
 }
-

@@ -47,6 +47,9 @@ class ChatListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        viewModel.createNewMessage()
+
         binding.recyclerView.apply {
             chatListAdapter = ChatListAdapter()
             adapter = chatListAdapter
@@ -59,18 +62,19 @@ class ChatListFragment : Fragment() {
 
     private fun handleState(state: ChatListState) {
         with(binding) {
+            chatListProgressBar.visibility = View.INVISIBLE
             when (state) {
                 is ChatListState.Data -> {
                     val newMessages = state.data.toMutableList()
                     val oldMessagesSize = chatListAdapter.currentList.size
                     chatListAdapter.submitList(newMessages)
                     if (oldMessagesSize != newMessages.size) {
-                        binding.recyclerView.smoothScrollToPosition(0)
+                        recyclerView.smoothScrollToPosition(0)
                     }
                 }
 
                 is ChatListState.Loading -> {
-                    binding.chatListProgressBar.visibility = View.VISIBLE
+                    chatListProgressBar.visibility = View.VISIBLE
                 }
 
                 is ChatListState.Error -> {

@@ -12,7 +12,6 @@ import javax.inject.Singleton
 @Component(modules = [DataModule::class, ViewModelModule::class, DomainModule::class])
 interface ChatComponent {
 
-
     fun inject(fragment: ChatListFragment)
     fun inject(fragment: RegistrationFragment)
 

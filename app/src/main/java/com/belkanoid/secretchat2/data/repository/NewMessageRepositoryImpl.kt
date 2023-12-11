@@ -70,6 +70,4 @@ class NewMessageRepositoryImpl(
             emit(Response.Error("There is no user: $userId"))
         }
     }
-
-
 }
