@@ -4,6 +4,6 @@ import kotlinx.coroutines.flow.Flow
 
 interface NewUserRepository {
 
-    suspend fun createUser(userName: String): Flow<Boolean>
+    fun createUser(userName: String): Flow<Boolean>
 
 }

@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.belkanoid.secretchat2.domain.repository.NewUserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -15,14 +17,18 @@ class RegistrationViewModel @Inject constructor(
     private val _registrationSate = MutableStateFlow<RegistrationState>(RegistrationState.Empty)
     val registrationSate = _registrationSate.asStateFlow()
 
-    private fun createUser(userName: String) {
+    fun createUser(userName: String) {
         _registrationSate.value = RegistrationState.Loading
-        if (!checkToValidName(userName)) return
-
-        viewModelScope.launch {
-            val result = repository.createUser(userName)
-//            _registrationSate.value = RegistrationState.Success(result)
+        if (!checkToValidName(userName)) {
+            _registrationSate.value = RegistrationState.Error(message = "Invalid name")
+            return
         }
+
+        repository.createUser(userName)
+            .onEach { success ->
+                _registrationSate.value = RegistrationState.Success(success)
+            }
+            .launchIn(viewModelScope)
     }
 
     private fun checkToValidName(userName: String): Boolean {

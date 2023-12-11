@@ -18,8 +18,9 @@ import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import java.util.Date
+import javax.inject.Inject
 
-class NewMessageRepositoryImpl(
+class NewMessageRepositoryImpl @Inject constructor(
     private val service: ChatApi,
     private val rsaKey: RsaKey,
 ) : NewMessageRepository {

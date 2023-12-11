@@ -42,6 +42,7 @@ class ChatListFragment : Fragment() {
     ): View {
         _binding = FragmentChatListBinding.inflate(inflater, container, false)
         component.inject(this)
+        binding.toolbar.setTitle(viewModel.id.toString())
         return binding.root
     }
 
@@ -54,7 +55,7 @@ class ChatListFragment : Fragment() {
             chatListAdapter = ChatListAdapter()
             adapter = chatListAdapter
         }
-        viewModel.chatListState
+        viewModel.state
             .onEach { state -> handleState(state) }.
             launchIn(lifecycleScope)
 

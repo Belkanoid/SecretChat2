@@ -4,17 +4,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.belkanoid.secretchat2.domain.repository.ChatListRepository
 import com.belkanoid.secretchat2.domain.repository.NewMessageRepository
+import com.belkanoid.secretchat2.domain.util.SharedPreferences
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import javax.inject.Inject
 
 class ChatListViewModel @Inject constructor(
     private val repository: ChatListRepository,
-    private val dva: NewMessageRepository
+    private val dva: NewMessageRepository,
+    private val sharedPreferences: SharedPreferences
 ) : ViewModel() {
-
-    private val _chatListSate = MutableStateFlow<ChatListState>(ChatListState.Empty)
-    val chatListState = _chatListSate.asStateFlow()
 
     private val refreshFlow = MutableSharedFlow<ChatListState>()
     private val currentMessagesId = mutableListOf<Long>()
@@ -31,6 +30,8 @@ class ChatListViewModel @Inject constructor(
             started = SharingStarted.Lazily,
             initialValue = ChatListState.Empty
         )
+
+    val id = sharedPreferences.getLong()
 
     init {
         viewModelScope.launch {

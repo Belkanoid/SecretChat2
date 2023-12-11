@@ -1,6 +1,7 @@
 package com.belkanoid.secretchat2.di
 
 import android.content.Context
+import com.belkanoid.secretchat2.presentation.MainActivity
 import com.belkanoid.secretchat2.presentation.screens.chatList.ChatListFragment
 import com.belkanoid.secretchat2.presentation.screens.registration.RegistrationFragment
 import dagger.BindsInstance
@@ -14,6 +15,7 @@ interface ChatComponent {
 
     fun inject(fragment: ChatListFragment)
     fun inject(fragment: RegistrationFragment)
+    fun inject(activity: MainActivity)
 
     @Component.Factory
     interface Factory {

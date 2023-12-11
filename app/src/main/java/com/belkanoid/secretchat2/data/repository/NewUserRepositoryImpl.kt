@@ -1,10 +1,12 @@
 package com.belkanoid.secretchat2.data.repository
 
+import android.util.Log
 import com.belkanoid.secretchat2.data.remote.ChatApi
 import com.belkanoid.secretchat2.data.remote.dto.UserDto
 import com.belkanoid.secretchat2.data.remote.postBody.UserBody
 import com.belkanoid.secretchat2.domain.repository.NewUserRepository
 import com.belkanoid.secretchat2.domain.util.SharedPreferences
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
@@ -12,13 +14,14 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.util.UUID
+import javax.inject.Inject
 
-class NewUserRepositoryImpl(
+class NewUserRepositoryImpl @Inject constructor(
     private val service: ChatApi,
     private val sharedPreferences: SharedPreferences
 ): NewUserRepository {
 
-    override suspend fun createUser(
+    override fun createUser(
         userName: String
     ): Flow<Boolean> = callbackFlow {
         val token = UUID.randomUUID().toString().replace("-", "")
@@ -37,13 +40,19 @@ class NewUserRepositoryImpl(
                 ) {
                     val userId = response.body()?.id ?: -1L
                     sharedPreferences.putLong(value = userId)
+
                     launch { this@callbackFlow.send(true) }
                 }
 
                 override fun onFailure(call: Call<UserDto>, t: Throwable) {
+                    Log.d("DAAD", t.message ?: "LOL")
                     launch { this@callbackFlow.send(false) }
                 }
             }
         )
+
+        awaitClose {
+            channel.close()
+        }
     }
 }
