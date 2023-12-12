@@ -55,9 +55,9 @@ class ChatListRepositoryImpl @Inject constructor(
     private suspend fun getQueue(): Flow<Response<List<Queue>>> = flow {
         try {
             val queue = service.getQueue(currentUserId, token).map { it.toQueue() }
-            emit(Response.Success(data = queue))
+            emit(Response.Success(queue))
         } catch (e: Exception) {
-            emit(Response.Error(message = "Could not get queue for: $currentUserId"))
+            emit(Response.Error("Could not get queue for: $currentUserId"))
         }
     }
 }

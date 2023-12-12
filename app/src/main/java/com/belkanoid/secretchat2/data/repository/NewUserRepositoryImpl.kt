@@ -38,14 +38,12 @@ class NewUserRepositoryImpl @Inject constructor(
                 override fun onResponse(
                     call: Call<UserDto>, response: Response<UserDto>
                 ) {
-                    val userId = response.body()?.id ?: -1L
+                    val userId = response.body()?.id ?: throw RuntimeException("Could not get registred")
                     sharedPreferences.putLong(value = userId)
-
                     launch { this@callbackFlow.send(true) }
                 }
 
                 override fun onFailure(call: Call<UserDto>, t: Throwable) {
-                    Log.d("DAAD", t.message ?: "LOL")
                     launch { this@callbackFlow.send(false) }
                 }
             }

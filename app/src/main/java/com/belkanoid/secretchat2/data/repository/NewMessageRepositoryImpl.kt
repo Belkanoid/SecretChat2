@@ -8,6 +8,7 @@ import com.belkanoid.secretchat2.data.rsa.RsaKey
 import com.belkanoid.secretchat2.domain.model.User
 import com.belkanoid.secretchat2.domain.repository.NewMessageRepository
 import com.belkanoid.secretchat2.domain.util.Response
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.catch
@@ -62,11 +63,15 @@ class NewMessageRepositoryImpl @Inject constructor(
                     }
                 )
             }
+        awaitClose {
+            channel.close()
+        }
     }
 
     override suspend fun getUser(userId: Long): Flow<Response<User>> = flow {
         try {
-            emit(Response.Success(service.getUser(userId).toUser()))
+            val user = service.getUser(userId).toUser()
+            emit(Response.Success(user))
         } catch (e: Exception) {
             emit(Response.Error("There is no user: $userId"))
         }
